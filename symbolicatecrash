@@ -453,7 +453,7 @@ sub parse_images {
     my $default_arch = 'armv6';
     
     #To get all the architectures for string matching.
-    my $architectures = "armv[4567][tfsk]?";
+    my $architectures = "armv[4567][tfsk]?|arm64";
     
     # Once Perl 5.10 becomes the default in Mac OS X, named regexp 
     # capture buffers of the style (?<name>pattern) would make this 
@@ -470,7 +470,7 @@ sub parse_images {
         %captures = ( 'base' => \$1, 'extent' => \$2, 'plus' => \$3,
                       'bundlename' => \$4, 'uuid' => \$5, 'path' => \$6);
     }
-    elsif($report_version == 104) { # Kirkwood                                                                                                                                                                    
+    elsif($report_version == 104 || $report_version == 105) { # Kirkwood                                                                                                                                                                    
         $pat = '                                                                                                                                                                                              
             ^\s* (\w+) \s* \- \s* (\w+) \s*     (?# the range base and extent [1,2] )                                                                                                                                 
             (\+)?                               (?# the application may have a + in front of the name [3] )                                                                                                   
@@ -813,6 +813,8 @@ sub fetch_symbolled_binaries {
             next;
         }
         
+		use bignum;
+
         if($$lib{base} ne $real_base) {
             $$lib{slide} =  hex($real_base) - hex($$lib{base});
         }
@@ -969,7 +971,7 @@ sub symbolicate_log {
     }
     
     my $bt = {};
-    my $threads = parse_sections($log_ref,'Thread\s+\d+\s?(Highlighted|Crashed)?',multiline=>1);
+    my $threads = parse_sections($log_ref,'Thread\s+\d+\s?(Highlighted|Crashed|Attributed)?',multiline=>1);
     for my $thread (values %$threads) {
         # merge all of the frames from all backtraces into one
         # collection
